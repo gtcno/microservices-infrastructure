@@ -11,6 +11,11 @@ http {
 	sendfile		on;
 	keepalive_timeout	65;
 
+{% raw %}{{ $mesos := service "leader.mesos" }}{{ with $mesos }}
+	upstream mesos { {{ range $mesos }}
+		server {{ .Address }}{{ .Port }};{{ end }}
+	} {{ end }}{% endraw %}
+
 	server {
 		listen {{ mesos_leader_proxy_port }} {% if do_mesos_ssl|bool %}ssl{% endif %};
 
@@ -38,7 +43,7 @@ http {
 			auth_basic_user_file	/etc/nginx/nginx-auth.conf;
 
 {% endif %}
-			proxy_pass http://{% raw %}{{ env "NGINX_PUBLIC_IP" }}{% endraw %}:{{ mesos_leader_port }}/;
+			proxy_pass http://leader.mesos.service.{{ consul_dns_domain }}:{{ mesos_leader_port }}/;
 		}
 	}
 }
