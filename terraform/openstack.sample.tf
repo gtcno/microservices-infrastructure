@@ -22,4 +22,5 @@ module "dc2-hosts" {
   resource_count = 3
   security_groups = ""
   glusterfs_volume_size = 100
+  control_group_policy = ""
 }

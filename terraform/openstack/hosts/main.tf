@@ -14,11 +14,17 @@ variable short_name { default = "mi" }
 variable ssh_user { default = "centos" }
 variable tenant_id { }
 variable tenant_name { }
+variable control_group_policy { default = "anti-affinity" }
 
 provider "openstack" {
   auth_url = "${ var.auth_url }"
   tenant_id	= "${ var.tenant_id }"
   tenant_name	= "${ var.tenant_name }"
+}
+
+resource "openstack_compute_servergroup_v2" "control_group" {
+  name = "control_group"
+  policies = ["${ var.control_group_policy}"]
 }
 
 resource "openstack_blockstorage_volume_v1" "mi-control-glusterfs" {
@@ -48,6 +54,7 @@ resource "openstack_compute_instance_v2" "control" {
     ssh_user = "${ var.ssh_user }"
   }
   count = "${ var.control_count }"
+  scheduler_hints {group = "${openstack_compute_servergroup_v2.control_group.id}"}
 }
 
 resource "openstack_compute_instance_v2" "resource" {
